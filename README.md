@@ -18,7 +18,7 @@ Procedural (rastgele) harita üretiminin yanı sıra sistem, verilen koordinatla
 Navigasyon sadece en kısa yolu değil, en "güvenli" yolu bulur:
 - **Heuristic ve Maliyet (Cost) Fonksiyonları:** Eğim ($\alpha$), Zemin Pürüzlülüğü ve Octile mesafe ölçümleriyle rotalar optimize edilir.
 - **Yapay Potansiyel Alanlar (APF):** Haritadaki engeller rover'ı fiziksel olarak iten (repulsive) bir güç olarak değerlendirilir.
-- **Dinamik Replanning:** Araç ilerlerken yeni bir bilinmeyen tehlike tespit edildiğinde (SLAM/Lidar), **D* Lite** mimarisi sayesinde saniyenin onda biri sürede tüm güzergah baştan hesaplanır.
+- **Dinamik Replanning:** Araç ilerlerken yeni bir bilinmeyen tehlike tespit edildiğinde (SLAM/Lidar), D* Lite mimarisi sayesinde saniyenin onda biri sürede tüm güzergah baştan hesaplanır.
 
 ### 🏎️ 3D WebGL Render Sürücüsü (Three.js)
 Basit 2D grid haritalarının ötesine geçerek; dinamik aydınlatma mekanikleri, kamera açıları (OrbitControls), FPS takip görselleştirmesi, yumuşak ışık gölgeleri ve Düşük-Poligon (Low-Poly) estetiği ile tüm otonom operasyonlar profesyonel **Three.js** motoru ile 3B uzayda simüle edilmektedir.
@@ -30,7 +30,7 @@ Stereo kameralar, 3D LiDAR ve IMU verilerinden alınan değerler birleştirilere
 
 ## 3. KURULUM VE ÇALIŞTIRMA
 
-Gereksinimler: **Python 3.8+**
+Gereksinimler: **Python 3.12+**
 
 1. Repoyu bilgisayarınıza indirin veya klonlayın.
 2. Gerekli Python bağımlılıklarını kurun:
