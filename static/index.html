@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYAP | Otonom Rota Optimizasyonu</title>
+    <!-- Modern and Technical Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="hologram-overlay"></div>
+    <div class="dashboard">
+        <!-- HEADER -->
+        <header class="top-nav">
+            <div class="brand">
+                <i class="fa-solid fa-satellite-dish"></i>
+                <h1>AYAP</h1>
+            </div>
+            <div class="top-telemetry">
+                <div class="mini-telemetry">
+                    <span class="t-label">SENSÖR <span id="active-sensor" class="glow-text" style="color:#10b981; margin-left:5px;">STEREO_VISION</span></span>
+                    <span class="t-val-small" style="color:#facc15">STAB: <span id="ekf-var">0.02</span></span>
+                </div>
+                <div class="mini-telemetry">
+                    <span class="t-label">MESAFE</span>
+                    <span class="t-val-small"><span class="temp-dist glow-text">0</span>m</span>
+                </div>
+                <div class="mini-telemetry">
+                    <span class="t-label">SINKAGE</span>
+                    <span class="t-val-small"><span id="sinkage-val" class="glow-text">0.05</span>m</span>
+                </div>
+                <div class="mini-telemetry" id="risk-alert">
+                    <span class="t-label">DURUM</span>
+                    <span class="t-val-small risk-max glow-text" style="color:#10b981">NOMİNAL</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-layout">
+            <!-- LEFT: CONTROLS & PARAMS -->
+            <aside class="glass-panel cmd-panel">
+                <h2 class="panel-title"><i class="fa-solid fa-terminal"></i> KONTROL MERKEZİ</h2>
+                <div class="panel-content">
+                    <div class="input-group">
+                        <label>ALGORİTMA MİMARİSİ</label>
+                        <select id="algo-select" class="cyber-input">
+                            <option value="dlite">D* Lite (Dynamic & Risk-Aware)</option>
+                            <option value="astar">A* (Static Fallback)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>HARİTA BOYUTU (ÇÖZÜNÜRLÜK)</label>
+                        <input type="number" id="map-size" value="50" min="20" max="150" class="cyber-input" style="width: 100%;">
+                    </div>
+                    
+                    <div class="coords-grid">
+                        <div class="input-group">
+                            <label>START COORD (X/Y)</label>
+                            <div class="flex-row">
+                                <input type="number" id="start-x" value="2" min="0" max="49" class="cyber-input">
+                                <input type="number" id="start-y" value="2" min="0" max="49" class="cyber-input">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>TARGET COORD (X/Y)</label>
+                            <div class="flex-row">
+                                <input type="number" id="goal-x" value="45" min="0" max="49" class="cyber-input">
+                                <input type="number" id="goal-y" value="45" min="0" max="49" class="cyber-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="dynamic-replanning" checked>
+                        <label for="dynamic-replanning" class="toggle-label"></label>
+                        <span class="toggle-text">Otonom Replanning</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="generate-map-btn" class="btn btn-outline"><i class="fa-solid fa-satellite"></i> YENİ DEM VERİSİ AL</button>
+                        <button id="plan-route-btn" class="btn btn-primary"><i class="fa-solid fa-route"></i> ROTA HESAPLA</button>
+                        <button id="start-sim-btn" class="btn btn-glow"><i class="fa-solid fa-power-off"></i> SİMÜLASYONU BAŞLAT</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MIDDLE: MAP -->
+            <main class="glass-panel map-view">
+                <div class="map-header">
+                    <div></div>
+                    <div class="legend">
+                        <span><i class="box flat"></i> Düz Zemin</span>
+                        <span><i class="box slope"></i> Yüksek Eğim</span>
+                        <span><i class="box crater"></i> Krater Merkezi</span>
+                        <span><i class="box hazard"></i> Kaya/Engel</span>
+                        <button id="toggle-3d-btn" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.7rem; margin-left: 10px;">3D WEBGL GÖRÜNÜM</button>
+                    </div>
+                </div>
+                <div class="map-canvas-wrapper" id="map-wrapper" style="position: relative;">
+                    <!-- 2D Canvas -->
+                    <canvas id="lunar-map" width="800" height="800" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;"></canvas>
+                    <!-- 3D Container (hidden by default) -->
+                    <div id="threejs-container" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>
+                </div>
+            </main>
+
+
+            <!-- BOTTOM: VISION -->
+            <div class="glass-panel vision-panel">
+                <h2 class="panel-title"><i class="fa-solid fa-camera"></i> SENSÖR FÜZYONU & DATA FUSION (PERCEPTION)</h2>
+                <div class="vision-container">
+                    <div class="cam-box">
+                        <canvas id="vision-canvas" width="600" height="200"></canvas>
+                        <div class="cam-ui">
+                            <span class="rec">IQI: <span id="iqi-val">1.0</span></span>
+                            <div class="crosshair center"></div>
+                            <div class="corner tl"></div><div class="corner tr"></div>
+                            <div class="corner bl"></div><div class="corner br"></div>
+                        </div>
+                    </div>
+                    <div class="terminal-logs" id="vision-logs">
+                        <div><span class="time">[SYS]</span> Vision kernel yüklendi...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
